@@ -1,4 +1,4 @@
-package com.SistemaPagamento.DTOs;
+package com.SistemaPagamento.DTOs.Input;
 
 import com.SistemaPagamento.Domain.User.UserClassification;
 

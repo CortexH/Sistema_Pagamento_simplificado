@@ -1,7 +1,8 @@
 package com.SistemaPagamento.Domain.User;
 
-import com.SistemaPagamento.DTOs.UserDTO;
+import com.SistemaPagamento.DTOs.Input.UserDTO;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,7 +13,7 @@ import java.math.BigDecimal;
 @Table(name = "users")
 @Getter
 @Setter
-@NoArgsConstructor
+@AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,8 +21,12 @@ public class User {
 
     private String firstName;
     private String lastName;
+
+    @Column(name = "Password")
     private String password;
+
     private String email;
+    private String document;
     private UserClassification classification;
 
     private Boolean blocked;
@@ -29,12 +34,15 @@ public class User {
 
     private BigDecimal balance;
 
-    public User(UserDTO data){
+    public User() {
+    }
 
+    public User(UserDTO data){
         this.firstName = data.firstName();
         this.lastName = data.lastName();
         this.password = data.password();
         this.email = data.email();
+        this.document = data.document();
         this.classification = data.classification();
 
         this.blocked = false;
@@ -42,5 +50,7 @@ public class User {
 
         this.balance = new BigDecimal(0);
     }
+
+
 
 }
