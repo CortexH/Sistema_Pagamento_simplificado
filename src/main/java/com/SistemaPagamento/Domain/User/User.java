@@ -34,6 +34,8 @@ public class User {
 
     private BigDecimal balance;
 
+    private UserRoles role;
+
     public User() {
     }
 
@@ -44,6 +46,7 @@ public class User {
         this.email = data.email();
         this.document = data.document();
         this.classification = data.classification();
+        this.role = UserRoles.ADMIN;
 
         this.blocked = false;
         this.deleted = false;

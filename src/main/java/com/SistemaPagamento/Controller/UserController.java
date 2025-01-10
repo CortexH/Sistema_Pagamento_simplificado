@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -113,6 +114,30 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "User login", description = "Login do usuário", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = {
+            @Content(schema = @Schema(implementation = UserLoginDTO.class), examples = {
+                    @ExampleObject(name = "Login payload",
+                            value = """
+                                    {
+                                        "document" : "123-456-789-10",
+                                        "password" : "12345"
+                                    }
+                                    """)
+            })
+    }),
+            responses = {
+            @ApiResponse(responseCode = "200", description = "Retorna o código de resposta 200 junto ao token", content = @Content(
+                    schema = @Schema(implementation = GenericError.class),
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    examples = {@ExampleObject(name = "Sucesso", value = """
+                            {
+                                "status" : "200",
+                                "token" : "abc..."
+                            }
+                            """)}
+            ))
+            }
+    )
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody UserLoginDTO data){
         String token = userService.userLogin(data);

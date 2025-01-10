@@ -1,7 +1,10 @@
 package com.SistemaPagamento.Services;
 
+import com.SistemaPagamento.Domain.User.User;
+import com.SistemaPagamento.Domain.User.UserRoles;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +17,7 @@ public class JwtService {
     private static final String secretKey = "Chave Muito, MUITO secreta. Pode acreditar, eu não mentiria :)"; // chave secreta
     private static final String issuer = "Sistema_Pagamento"; // emissor
     private static final Algorithm algorithm = Algorithm.HMAC256(secretKey);
+
 
     public String generateToken(String document){
         try{
@@ -50,6 +54,7 @@ public class JwtService {
 
         return subject.equals(document);
     }
+
 
     public Instant creationDate(){
         return ZonedDateTime.now(ZoneId.of("America/Sao_Paulo")).toInstant();
