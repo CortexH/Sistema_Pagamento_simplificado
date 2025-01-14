@@ -25,7 +25,7 @@ import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/user")
-@Tag(name = "PublicEndpoints", description = "Endpoints públicos relacionados ao usuário.")
+@Tag(name = "Public Endpoints", description = "Endpoints públicos relacionados ao usuário.")
 public class UserController {
 
     @Autowired
@@ -33,14 +33,6 @@ public class UserController {
     @Autowired
     private JwtService jwtService;
 
-    /*
-    @GetMapping
-    public ResponseEntity<?> getAllUsers(){
-        List<User> users = userService.returnAllUsers();
-        if(users.isEmpty()) throw new NoSuchElementException("Não há nenhum usuário cadastrado");
-        return ResponseEntity.ok(users);
-    }
-    */
     @Operation(
             summary = "Cria um novo usuário.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -68,39 +60,31 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Cria um novo usuário", content =
             @Content(
-                    //mediaType = "application/json",
-                    schema = @Schema(implementation = AuthenticatedUser.class),
-                    examples = {
-                            @ExampleObject(
-                                    name = "Sucesso",
-                                    description = "Retorna o token de autenticação, junto ao código 200.",
-                                    value = """
-                                            {
-                                                "status" : "200",
-                                                "token" : "abc..."
-                                            }
-                                            """
-                            )
-                    }
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = AuthenticatedUser.class,
+                            example =  """
+                                        {
+                                            "status" : "200",
+                                            "token" : "abc..."
+                                        }
+                                        """
+                    )
+
             )),
-            @ApiResponse(responseCode = "400", description = "Usuário inseriu um campo que já existe no banco ou algum campo incorretamente",
+            @ApiResponse(responseCode = "400", description = "Erros relacionados ao Bad Request, 400",
                     content = {
-                    @Content(schema = @Schema(implementation = GenericError.class),
-                            examples = {
+                    @Content(schema = @Schema(implementation = GenericError.class), examples = {
                             @ExampleObject(
                                     name = "Erro de campo mal preenchido",
                                     value = """
                                             {
                                                 "status" : "400",
-                                                "message" : "e.g Email / cpf especificado já está em uso"
+                                                "message" : "Usuário com document especificado já existe"
                                             }
                                             """
                             )
-
-                            }
-                    )
                     }
-            )
+                    )})
 
     })
     @PostMapping("/new")
@@ -115,28 +99,49 @@ public class UserController {
     }
 
     @Operation(summary = "User login", description = "Login do usuário", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = {
-            @Content(schema = @Schema(implementation = UserLoginDTO.class), examples = {
-                    @ExampleObject(name = "Login payload",
-                            value = """
-                                    {
-                                        "document" : "123-456-789-10",
-                                        "password" : "12345"
-                                    }
-                                    """)
-            })
+            @Content(schema = @Schema(implementation = UserLoginDTO.class, example =
+                    """
+                    {
+                        "document" : "123-456-789-10",
+                        "password" : "12345"
+                    }
+                    """
+            ))
     }),
             responses = {
-            @ApiResponse(responseCode = "200", description = "Retorna o código de resposta 200 junto ao token", content = @Content(
-                    schema = @Schema(implementation = GenericError.class),
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    examples = {@ExampleObject(name = "Sucesso", value = """
-                            {
-                                "status" : "200",
-                                "token" : "abc..."
-                            }
-                            """)}
-            ))
-            }
+                @ApiResponse(responseCode = "200", description = "Retorna o código de resposta 200 junto ao token", content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = @Schema(implementation = GenericError.class, example =
+                                """
+                                {
+                                    "status" : "200",
+                                    "token" : "abc..."
+                                }
+                                """
+                        )
+                )),
+                @ApiResponse(responseCode = "400", description = "Respostas Bad Request", content = @Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GenericError.class),
+                        examples = {
+                                @ExampleObject(name = "Dado faltante", description = "Resposta ao não inserir um dado obrigatório",
+                                    value = """
+                                            {
+                                                "status": "400",
+                                                "message": "Insira o dado faltante corretamente: {campo}"
+                                            }
+                                            """
+                                ),
+                                @ExampleObject(name = "Dados incorretos", description = "Resposta ao inserir algum dado incorretamente",
+                                        value = """
+                                                {
+                                                    "status": "400",
+                                                    "message": "CPF ou senha incorretos."
+                                                }
+                                                """
+                                )
+                        }
+                ))
+    }
     )
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody UserLoginDTO data){
@@ -144,4 +149,5 @@ public class UserController {
         AuthenticatedUser auth = new AuthenticatedUser("200", token);
         return ResponseEntity.status(HttpStatus.OK).body(auth);
     }
+
 }

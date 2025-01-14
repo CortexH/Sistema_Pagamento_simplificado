@@ -6,17 +6,23 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.models.OpenAPI;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+// configurações do swagger
 
 @Configuration
 @OpenAPIDefinition(info = @Info(
-        title = "Sistema Pagamento",
-        description = "Sistema de pagamento simplificado para Portfolio"
-))
+        title = "Sistema Pagamento", // titulo
+        description = "Sistema de pagamento simplificado para Portfolio" // descrição
+), security = @SecurityRequirement(name = "jwt_auth")) // metodo de segurança
 @SecurityScheme(
-        name = "jwt_auth",
-        scheme = "bearer",
-        type = SecuritySchemeType.HTTP,
-        bearerFormat = "JWT"
+        name = "jwt_auth", // nome do scheme
+        scheme = "bearer", // esquema 'bearer'
+        type = SecuritySchemeType.HTTP, // tipo da segurança
+        bearerFormat = "JWT" // formato do bearer
 )
-public class SwaggerConfigs {}
+public class SwaggerConfigs {
+
+}
