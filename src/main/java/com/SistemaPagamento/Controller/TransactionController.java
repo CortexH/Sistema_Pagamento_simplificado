@@ -205,6 +205,16 @@ public class TransactionController {
                                 "message": "O ação que você tentou realizar é proibida"
                             }
                             """
+                    ))),
+                    @ApiResponse(responseCode = "400", description = "Resposta ao usuário sobre erros 400", content =
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GenericError.class, example =
+                            """
+                            {
+                            "status": "400",
+                            "message": "Insira o dado faltante corretamente: {campo}"
+                            }
+                            """
+
                     )))
             }
 
