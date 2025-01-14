@@ -7,8 +7,7 @@ import java.time.LocalDateTime;
 
 public record TransactionDTO(
         BigDecimal value,
-        Long sender,
-        Long receiver,
+        String receiver,
         TransactionType type,
         LocalDateTime transactionTime
 ) {

@@ -30,7 +30,8 @@ public class SecurityConfigurations {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(EndpointsAuthNotRequired).permitAll() // permitir requests sem autenticação
                         .requestMatchers(SwaggerWhitelist).permitAll() // permite requests do swagger
-                        .requestMatchers(ProtectedClientEndpoints).hasAnyRole("CLIENT", "ADMIN") // permite estes requests para user com role "Client"
+                        .requestMatchers(ProtectedClientEndpoints).hasAnyRole("CLIENT", "ADMIN", "EMPLOYEE") // permite estes requests para user com role "Client"
+                        .requestMatchers(OnlyForEmployee).hasAnyRole("EMPLOYEE", "ADMIN")
                         .requestMatchers(ProtectedAdminEndpoints).hasRole("ADMIN")
                 )
                 .cors(cors -> cors.disable()) // desabilitar cors (nota: talvez habilitar mais tarde)
