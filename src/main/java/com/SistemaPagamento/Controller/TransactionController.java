@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/transaction")
-@Tag(name = "PrivateEndpoints", description = "Endpoints que necessitam de autenticação")
+@Tag(name = "Transaction", description = "Endpoints relacionados à transação")
 @Slf4j
 public class TransactionController {
     @Autowired
@@ -122,7 +122,17 @@ public class TransactionController {
                                     """,
                                     name = "400 para saldo < value"
                             ),
-                    })),
+                            @ExampleObject(description = "Mensagem ao inserir o sender como mesmo usuário que o receiver.",
+                                    value = """
+                                    {
+                                        "status": "400",
+                                        "message": "Receiver não pode ser o mesmo usuário que Sender"
+                                    }
+                                    """,
+                                    name = "400 para sender = receiver"
+                            ),
+                    })
+                    ),
                     @ApiResponse(responseCode = "401", description = "Resposta ao não inserir ou inserir um token inválido",
                             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GenericError.class,
                                     example =
@@ -130,6 +140,16 @@ public class TransactionController {
                                             {
                                                 "status": "401",
                                                 "message": "Token invalido"
+                                            }
+                                            """
+                            ))),
+                    @ApiResponse(responseCode = "403", description = "Resposta ao usuário não ter permissão para acessar o conteúdo",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GenericSuccessOutput.class,
+                                    example =
+                                            """
+                                            {
+                                                "status": "403",
+                                                "message": "O ação que você tentou realizar é proibida"
                                             }
                                             """
                             )))
@@ -142,6 +162,53 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.newTransaction(data, token));
     }
 
+    @Operation(summary = "Cancelar transação", description = "Endpoint utilizado para cancelar transações agendadas",
+    requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+    schema = @Schema(implementation = CancelDelayedTransactionDTO.class, example =
+            """
+            {
+                "transactionId": 1
+            }
+            """
+    ))))
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Resposta ao realizar a ação com sucesso",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GenericSuccessOutput.class,
+                                    example =
+                                            """
+                                            {
+                                                "timestamp": "2025-01-14T19:41:49.2469791",
+                                                "status": 200,
+                                                "message": "Transação cancelada com sucesso",
+                                                "update": "Transaction: Delayed -> Canceled"
+                                            }
+                                            """
+                            ))),
+
+                    @ApiResponse(responseCode = "401", description = "Resposta ao token ser inválido ou vazio",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GenericSuccessOutput.class,
+                    example =
+                            """                                        
+                            {
+                                "status": "401",
+                                "message": "Token inválido"
+                            }
+                            """
+                    ))),
+                    @ApiResponse(responseCode = "403", description = "Resposta ao usuário não ter permissão para acessar o conteúdo",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GenericSuccessOutput.class,
+                    example =
+                            """
+                            {
+                                "status": "403",
+                                "message": "O ação que você tentou realizar é proibida"
+                            }
+                            """
+                    )))
+            }
+
+    )
     @PostMapping("/cancel")
     @SecurityRequirement(name = "jwt_auth")
     public ResponseEntity<?> cancelDelayedTransaction(@RequestBody CancelDelayedTransactionDTO data, @RequestHeader HttpHeaders header){

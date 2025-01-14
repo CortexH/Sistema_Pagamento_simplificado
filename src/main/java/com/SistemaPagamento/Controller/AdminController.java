@@ -1,6 +1,7 @@
 package com.SistemaPagamento.Controller;
 
 import com.SistemaPagamento.DTOs.Input.ChangeUserBalanceDTO;
+import com.SistemaPagamento.DTOs.Input.ChangeUserRoleDTO;
 import com.SistemaPagamento.DTOs.Output.GenericError;
 import com.SistemaPagamento.DTOs.Output.GenericSuccessOutput;
 import com.SistemaPagamento.Domain.Transaction.Transaction;
@@ -17,12 +18,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
@@ -64,7 +63,17 @@ public class AdminController {
                         "message": "Token inválido"
                     }
                     """
-            })))}
+            }))),
+                    @ApiResponse(responseCode = "403", description = "Resposta ao usuário não ter permissão para acessar o conteúdo",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GenericSuccessOutput.class,
+                                    example =
+                                            """
+                                            {
+                                                "status": "403",
+                                                "message": "O ação que você tentou realizar é proibida"
+                                            }
+                                            """
+                            )))}
    )
     @GetMapping("/getusers")
     public ResponseEntity<?> getAllUsers(){
@@ -124,7 +133,17 @@ public class AdminController {
                                 "message": "Token invalido ou vazio."
                             }
                             """
-                    })))
+                    }))),
+            @ApiResponse(responseCode = "403", description = "Resposta ao usuário não ter permissão para acessar o conteúdo",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GenericSuccessOutput.class,
+                            example =
+                                    """
+                                    {
+                                        "status": "403",
+                                        "message": "O ação que você tentou realizar é proibida"
+                                    }
+                                    """
+                    )))
     })
     @PatchMapping("/SetUserBalance")
     public ResponseEntity<?> setUserBalance(@RequestBody ChangeUserBalanceDTO data){
@@ -195,11 +214,112 @@ public class AdminController {
                                             }
                                             """
                             )
-                    }))
+                    })),
+                    @ApiResponse(responseCode = "403", description = "Resposta ao usuário não ter permissão para acessar o conteúdo",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GenericSuccessOutput.class,
+                                    example =
+                                            """
+                                            {
+                                                "status": "403",
+                                                "message": "O ação que você tentou realizar é proibida"
+                                            }
+                                            """
+                            )))
 
             })
     @GetMapping("/alltransactions")
     public ResponseEntity<?> getAllTransactions(){
         return ResponseEntity.ok(transactionService.getAllTransactions());
+    }
+
+    @Operation(summary = "Trocar role do usuário", description = "Muda o role do usuário, como 'EMPLOYEE' para 'CLIENT'",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content =
+            @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ChangeUserRoleDTO.class),
+            examples = {
+                    @ExampleObject(name = "To Client", description = "Muda o role do usuário para client",
+                            value = """
+                                    {
+                                        "NewRole" : "CLIENT",
+                                        "UserId" : 1
+                                    }
+                                    """
+                    ),
+                    @ExampleObject(name = "To ADMIN", description = "Muda o role do usuário para admin",
+                            value = """
+                                    {
+                                        "NewRole" : "ADMIN",
+                                        "UserId" : 1
+                                    }
+                                    """
+                    ),
+                    @ExampleObject(name = "To Employee", description = "Muda o role do usuário para employee",
+                            value = """
+                                    {
+                                        "NewRole" : "EMPLOYEE",
+                                        "UserId" : 1
+                                    }
+                                    """
+                    )
+            })))
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Resposta ao usuário após realizar a ação com sucesso", content =
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GenericSuccessOutput.class, example =
+                            """
+                            {
+                                "timestamp": "2025-01-14T19:51:25.5983862",
+                                "status": 200,
+                                "message": "Role do usuário 123-456-789-10 atualizado com sucesso",
+                                "update": "Role: ADMIN -> CLIENT"
+                            }
+                            """
+                    ))),
+                    @ApiResponse(responseCode = "401", description = "Resposta ao inserir token como inválido ou vazio", content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = GenericError.class, example =
+                                    """
+                                        {
+                                            "status": "401",
+                                            "message": "Token inválido"
+                                        }
+                                    """
+                            ))),
+
+                    @ApiResponse(responseCode = "403", description = "Resposta ao usuário não ter permissão para acessar o conteúdo",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GenericSuccessOutput.class,
+                                    example =
+                                            """
+                                            {
+                                                "status": "403",
+                                                "message": "O ação que você tentou realizar é proibida"
+                                            }
+                                            """
+                            ))),
+                    @ApiResponse(responseCode = "400", description = "Respostas ao usuário realizar algum erro",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GenericError.class), examples = {
+                            @ExampleObject(description = "Resposta ao não inserir campo obrigatório",
+                                    value = """
+                                    {
+                                        "status": "400",
+                                        "message": "Insira o dado faltante corretamente: {campo}"
+                                    }
+                                    """,
+                                    name = "400 para campos gerais"
+                            )
+                    })),
+                    @ApiResponse(responseCode = "404", description = "Resposta ao não encontrar o usuário", content =
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GenericError.class, example =
+                            """
+                            {
+                                "status": "404",
+                                "message": "Usuário não encontrado."
+                            }
+                            """
+                    )))
+            }
+    )
+    @SecurityRequirement(name = "jwt_auth")
+    @PatchMapping("/role")
+    public ResponseEntity<?> changeUserRole(@RequestBody ChangeUserRoleDTO data){
+        return ResponseEntity.status(HttpStatus.OK).body(userService.changeUserRole(data));
     }
 }

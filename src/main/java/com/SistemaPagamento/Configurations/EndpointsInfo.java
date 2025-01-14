@@ -27,7 +27,8 @@ public class EndpointsInfo {
             "/admin/**",
             "/admin/getUsers",
             "/admin/SetUserBalance",
-            "/admin/alltransactions"
+            "/admin/alltransactions",
+            "/admin/roles"
     };
 
     // endpoints protegidos, acessados apenas por colaboradores

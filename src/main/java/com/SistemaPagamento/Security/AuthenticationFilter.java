@@ -98,8 +98,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             response.setContentType("application/json");
             response.getWriter().write(new ObjectMapper().writeValueAsString(err));
             response.getWriter().flush();
-        }
 
+        }
     }
 
     // metodo para validar se o endpoint da requisição é permitido sem autenticação

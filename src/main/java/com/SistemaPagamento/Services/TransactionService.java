@@ -47,6 +47,10 @@ public class TransactionService {
         // puxar o receiver (usuário que recebeu) com base no Document inserido no TransactionDTO
         User receiver = userService.returnByDocument(data.receiver());
 
+        if(sender.getDocument().equals(receiver.getDocument())){
+            throw new IllegalArgumentException("Receiver não pode ser o mesmo usuário que Sender");
+        }
+
         validadeUserBalance(sender, receiver, data.value());
 
         // validar se o valor da transação é maior que 0
@@ -87,6 +91,7 @@ public class TransactionService {
             transaction.setState(TransactionState.delayed);
         }else{
             transaction.setTransactionTime(LocalDateTime.now());
+            receiver.setBalance(receiver.getBalance().add(data.value()));
         }
         sender.setBalance(sender.getBalance().subtract(data.value()));
 
@@ -151,10 +156,10 @@ public class TransactionService {
 
         // puxa todas as transações com base em quem mandou elas
         ArrayList<Transaction> transactions = transactionRepository.findAllBySender(sender)
-                .orElseThrow(() -> new NoSuchElementException("Não foram encontradas nenhuma transação com o usuário " + sender.getFirstName() + " " + sender.getLastName()));
+                .orElseThrow(() -> new NoSuchElementException("Não foram encontradas transações do usuário " + sender.getFirstName() + " " + sender.getLastName()));
 
         // validação da existência de pelo menos uma transação
-        if(transactions == null || transactions.isEmpty()) throw new NoSuchElementException("Não foram encontradas nenhuma transação com o usuário " + sender.getFirstName() + " " + sender.getLastName());
+        if(transactions == null || transactions.isEmpty()) throw new NoSuchElementException("Não foram encontradas transações do usuário " + sender.getFirstName() + " " + sender.getLastName());
 
         // puxar apenas a transação com o ID especificado em 'data'
         List<Transaction> listTransaction = transactions.stream().filter(item -> item.getId().equals(data.transactionId())).toList();

@@ -1,9 +1,12 @@
 package com.SistemaPagamento.Services;
 
+import com.SistemaPagamento.DTOs.Input.ChangeUserRoleDTO;
 import com.SistemaPagamento.DTOs.Input.UserDTO;
 import com.SistemaPagamento.DTOs.Input.UserLoginDTO;
 import com.SistemaPagamento.DTOs.Input.UserUpdate;
+import com.SistemaPagamento.DTOs.Output.GenericSuccessOutput;
 import com.SistemaPagamento.Domain.User.User;
+import com.SistemaPagamento.Domain.User.UserRoles;
 import com.SistemaPagamento.Repositories.UserRepository;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -100,6 +104,27 @@ public class UserService {
         userRepository.save(user);
 
         return updated;
+    }
+
+    public GenericSuccessOutput changeUserRole(ChangeUserRoleDTO data){
+        User user = returnById(data.UserId());
+        UserRoles lastRole = user.getRole();
+
+        if(user.getRole().equals(data.NewRole())){
+            throw new IllegalArgumentException("Role inalterado.");
+        }
+
+        user.setRole(data.NewRole());
+
+        userRepository.save(user);
+
+        GenericSuccessOutput suc = new GenericSuccessOutput();
+        suc.setStatus(200);
+        suc.setMessage("Role do usuário " + user.getDocument() + " atualizado com sucesso");
+        suc.setTimestamp(LocalDateTime.now());
+        suc.setUpdate("Role: " + lastRole.name() + " -> " + user.getRole().name());
+
+        return suc;
     }
 
 }
