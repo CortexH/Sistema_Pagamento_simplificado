@@ -2,16 +2,18 @@ package com.SistemaPagamento.Services;
 
 import com.SistemaPagamento.DTOs.Input.UserDTO;
 import com.SistemaPagamento.DTOs.Input.UserLoginDTO;
+import com.SistemaPagamento.DTOs.Input.UserUpdate;
 import com.SistemaPagamento.Domain.User.User;
 import com.SistemaPagamento.Repositories.UserRepository;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.RecordComponent;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -22,27 +24,37 @@ public class UserService {
     @Autowired
     private JwtService jwtService;
 
-    //metodo para retornar usuário pelo email, se não encontrar, lança uma exceção
-    public User returnByEmail(String email) throws UsernameNotFoundException {
-        return userRepository.findByemail(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
-    }
-
     // metodo para retornar usuário pelo document, se não encontrar, lança uma exceção
-    public User returnByDocument(String doc) throws Exception{
+    public User returnByDocument(String doc){
         return userRepository.findBydocument(doc)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+                .orElseThrow(() -> new IllegalArgumentException("Usuário com document especificado não pôde ser encontrado"));
     }
 
     // metodo para retornar todos os usuários
     public List<User> returnAllUsers(){
-        return userRepository.findAll();
+        List<User> users = userRepository.findAll();
+        if(users.isEmpty()) throw new NoSuchElementException("Nenhum usuário foi encontrado");
+
+        return users;
+    }
+
+    public User returnById(Long id){
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado."));
     }
 
     // metodo para criar um novo usuário e inseri-lo no banco
     public String newUser(UserDTO userDTO){
+
+        Objects.requireNonNull(userDTO.document(), "document");
+        Objects.requireNonNull(userDTO.classification(), "classification");
+        Objects.requireNonNull(userDTO.email(), "email");
+        Objects.requireNonNull(userDTO.password(), "password");
+        Objects.requireNonNull(userDTO.firstName(), "firstName");
+        Objects.requireNonNull(userDTO.lastName(), "lastName");
+
         try{
-            if(!validateAbleToCreateUser(userDTO)) throw new BadRequestException("Usuário com email ou document especificado já existe");
+            if(!validateAbleToCreateUser(userDTO)) throw new IllegalArgumentException("Usuário com document especificado já existe");
             User user = new User(userDTO);
             User userSaved = userRepository.save(user);
             return jwtService.generateToken(userSaved.getDocument());
@@ -57,8 +69,37 @@ public class UserService {
                 || userRepository.findBydocument(data.document()).isPresent());
     }
 
+    // metodo para logar com o usuário
     public String userLogin(UserLoginDTO data){
-        if(!userRepository.existsBydocumentAndPassword(data.document(), data.password())) throw new NoSuchElementException("CPF ou senha incorretos.");
+
+        Objects.requireNonNull(data.document(), "document");
+        Objects.requireNonNull(data.password(), "password");
+
+        if(!userRepository.existsBydocumentAndPassword(data.document(), data.password())) throw new IllegalArgumentException("CPF ou senha incorretos.");
         return jwtService.generateToken(data.document());
     }
+
+    // metodo para atualizar todos os dados do usuário e retornar um arraylist das atualizações
+    public ArrayList<String> updateUser(UserUpdate data) {
+
+        ArrayList<String> updated = new ArrayList<>();
+
+        User user = returnById(data.userId());
+
+        if(data.firstName() != null) user.setFirstName(data.firstName()); updated.add(user.getFirstName() + " -> " + data.firstName());
+        if(data.lastName() != null) user.setLastName(data.lastName()); updated.add(user.getLastName() + " -> " + data.lastName());
+        if(data.balance() != null) user.setBalance(data.balance()); updated.add(user.getBalance() + " -> " + data.balance());
+        if(data.classification() != null) user.setClassification(data.classification()); updated.add(user.getClassification() + " -> " + data.classification());
+        if(data.blocked() != null) user.setBlocked(data.blocked()); updated.add(user.getBlocked() + " -> " + data.blocked());
+        if(data.deleted() != null) user.setDeleted(data.deleted()); updated.add(user.getDeleted() + " -> " + data.deleted());
+        if(data.document() != null) user.setDocument(data.document()); updated.add(user.getDocument() + " -> " + data.document());
+        if(data.password() != null) user.setPassword(data.password()); updated.add(user.getPassword() + " -> " + data.password());
+        if(data.role() != null) user.setRole(data.role()); updated.add(user.getRole() + " -> " + data.role());
+        if(data.email() != null) user.setEmail(data.email()); updated.add(user.getEmail() + " -> " + data.email());
+
+        userRepository.save(user);
+
+        return updated;
+    }
+
 }
